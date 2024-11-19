@@ -14,21 +14,28 @@ class Card:
         return False
     
 def prase_card():
+    valid = False
     card = input(f'Select a card to play or type "draw" to draw a card. (ex. Red 8) ').strip().title()
     new_card = card.strip()
-    if new_card == "Draw":
-        return "Draw"
-    else:
-        split_card = new_card.split(" ")
-        if len(split_card) > 2 or len(split_card) < 2: 
-            print("That is not a valid entry please try again.") #Need to loop this later on to make sure this can be properly executed)
-        color = split_card[0]
-        num = split_card[1]
-        valid_colors = set(["Red", "Yellow", "Green", "Blue"])
-        if color in valid_colors:
-            return Card(color, num)
+    while valid != True:
+        if new_card == "Draw":
+            valid = True
+            return "Draw"
         else:
-            print("That is not a valid color.") #Need to loop this later to make sure they can correctly enter a valid color
+            split_card = new_card.split()
+            if len(split_card) > 2 or len(split_card) < 2: 
+                print("That is not a valid entry please try again.")
+                card = input(f'Select a card to play or type "draw" to draw a card. (ex. Red 8) ').strip().title()
+            color = split_card[0]
+            num = split_card[1]
+            valid_colors = set(["Red", "Yellow", "Green", "Blue"])
+            valid_number = set(["0", "1", "2", "3", "4", "5", "6", "7",  "8", "9"])
+            if color in valid_colors and num in valid_number:
+                valid = True
+                return Card(color, num)
+            else:
+                print("That is not a valid card please try again.")
+                card = input(f'Select a card to play or type "draw" to draw a card. (ex. Red 8) ').strip().title()
 
 
 
@@ -61,7 +68,7 @@ class Deck:
 
     def start(self):
         starting_card = self.cards.pop(0)
-        print("The faceup card on the table is:", starting_card)
+        #print("The faceup card on the table is:", starting_card)
         return starting_card        
      
    
@@ -78,11 +85,12 @@ class Game:
     def next_turn(self, deck):
         while not any(len(player.hand) == 0 for player in self.players):
             for player in self.players:
-                played_card = player.turn(deck)
+                print(f"The current face up card is: {self.current_face_up_card}")
+                played_card = player.turn(deck, self.current_face_up_card)
 
                 if played_card is not None:
                     self.current_face_up_card = played_card
-                    self.display()
+                    
            
                   
 
@@ -98,7 +106,7 @@ class Player:
         player_choice = input(f'Select a card to play or type "draw" to draw a card. {[str(card) for card in self.hand]}')
         return player_choice
     
-    def turn(self, deck):
+    def turn(self, deck, current_face_up_card):
         print(f"It is your turn {self.name}")
         if len(self.hand) == 1:
             print(f"{self.name} has UNO!")
@@ -113,12 +121,18 @@ class Player:
                 return None
                 #print(f"Updated hand {[str(card) for card in self.hand]}")
             elif player_choice in self.hand:
-                print(f"{self.name} is playing {player_choice}") 
-                self.hand.remove(player_choice)
-                #print(f"Updated hand {[str(card) for card in self.hand]}")
-                return player_choice
+                if player_choice.color == current_face_up_card.color or player_choice.num == current_face_up_card.num:
+                    print(f"{self.name} is playing {player_choice}") 
+                    self.hand.remove(player_choice)
+                    #print(f"Updated hand {[str(card) for card in self.hand]}")
+                    return player_choice
+                else:
+                    print("That is not a valid card to play.")
             else:
-                print(f"Card {player_choice} is not in the hand!")
+                print(f"Card {player_choice} is not in the hand! Try again.")
+                print(f"Your hand is: {[str(card) for card in self.hand]}")    
+
+                
 
 
 def main():
@@ -144,7 +158,5 @@ def main():
     game = Game(deck.start(), players)
 
     game.next_turn(deck)
-
-
         
 main()
