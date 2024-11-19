@@ -1,5 +1,0 @@
-Once upon a time, there was a brave adventurer named <hero>. One day, <hero> set off on a quest to find the legendary <noun>. Along the way, <hero> encountered a <creature>, who gave <him/her> a magical <item>.
-
-With the <item> in hand, <hero> journeyed through <terrain>, facing many challenges. <he/she> crossed <body_of_water> and climbed <mountain>. Finally, after days of travel, <hero> reached <location>, where the <noun> was hidden.
-
-<hero> cautiously entered <location> and discovered the <noun>. <he/she> felt <emotion> as <he/she> held the <noun> in <his/her> hands. Little did <hero> know, this was just the beginning of <his/her> greatest adventure yet!
