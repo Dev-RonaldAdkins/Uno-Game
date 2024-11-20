@@ -45,6 +45,7 @@ def parse_card():
 class Deck:
     def __init__(self):
         self.cards = []
+        self.cards_played = []
         color = ["Red", "Yellow", "Green", "Blue"]
         number = ["0", "1", "1", "2", "2", "3", "3", "4", "4", "5", "5", "6", "6", "7", "7", "8", "8", "9", "9"]
         #wild = ["wild card", "wild card", "wild card", "wild card", "draw four", "draw four", "draw four", "draw four"]
@@ -52,8 +53,7 @@ class Deck:
         for colors in color:
             for num in number:
                 self.cards.append(Card(colors,num))
-        
-         
+          
     def shuffle(self):
         random.shuffle(self.cards)
 
@@ -71,8 +71,10 @@ class Deck:
 
     def start(self):
         starting_card = self.cards.pop(0)
+        self.cards_played.append(starting_card)
         #print("The faceup card on the table is:", starting_card)
-        return starting_card        
+        return starting_card
+    
      
    
 
@@ -93,6 +95,18 @@ class Game:
 
                 if played_card is not None:
                     self.current_face_up_card = played_card
+                    deck.cards_played.append(played_card)
+
+                if len(deck.cards) == 1:
+                    new_deck = []
+                    for cards in deck.cards_played:
+                        if cards == self.current_face_up_card:
+                            continue
+                        new_deck.append(cards)
+                    deck.cards.extend(new_deck)
+                    deck.shuffle()
+                    deck.cards_played.clear()
+
                     
            
                   
@@ -138,7 +152,7 @@ class Player:
                         return
                     return player_choice
                 else:
-                    print("That is not a valid card to play. Please match the color or number of the card.")
+                    print("That is not a valid card to play. Please match the color or number of the card to the card on the.")
                     print(f"Your hand is: {[str(card) for card in self.hand]}") 
                     
             else:
