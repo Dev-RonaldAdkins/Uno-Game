@@ -13,10 +13,8 @@ class Card:
             return self.color == other.color and self.num == other.num
         return False
     
-def prase_card():
+def parse_card():
     valid = False
-    #card = input(f'Select a card to play or type "draw" to draw a card. (ex. Red 8) ').strip().title()
-    #new_card = card.strip()
     while valid != True:
         card = input(f'Select a card to play or type "draw" to draw a card. (ex. Red 8) ').strip().title()
         new_card = card.strip()
@@ -35,9 +33,12 @@ def prase_card():
             if color in valid_colors and num in valid_number:
                 valid = True
                 return Card(color, num)
+            elif color not in valid_colors:
+                print("That is not a valid color. Please enter a valid color and number (Red, Yellow, Green, Blue).")
+            elif num not in valid_number: 
+                print("That is not a valid number. Pleae enter a card with a valid color and number (1-9).")
             else:
                 print("That is not a valid card please try again.")
-                #card = input(f'Select a card to play or type "draw" to draw a card. (ex. Red 8) ').strip().title()
 
 
 
@@ -87,9 +88,6 @@ class Game:
     def next_turn(self, deck):
         while not any(len(player.hand) == 0 for player in self.players):
             for player in self.players:
-                if len(player.hand) == 0: 
-                    print(f"{player.name} has won")
-                    return
                 print(f"The current face up card is: {self.current_face_up_card}")
                 played_card = player.turn(deck, self.current_face_up_card)
 
@@ -100,8 +98,6 @@ class Game:
                   
 
 class Player:
-
-    
 
     def __init__(self, name):
         self.hand = []
@@ -118,13 +114,11 @@ class Player:
         
         print(f"It is your turn {self.name}")
 
-        if len(self.hand) == 1:
-            print(f"{self.name} has UNO!")
         print(f"Your hand is: {[str(card) for card in self.hand]}")    
 
         while True:
-            player_choice = prase_card()
-                #f'Select a card to play or type "draw" to draw a card. {[str(card) for card in self.hand]}
+            player_choice = parse_card()
+    
             if player_choice == "Draw":
                 self.draw(deck)
                 print(f"{self.name} has drawn a card")
@@ -135,8 +129,13 @@ class Player:
                 if player_choice.color == current_face_up_card.color or player_choice.num == current_face_up_card.num:
                     print(f"{self.name} is playing {player_choice}") 
                     self.hand.remove(player_choice)
-                    #print(f"Updated hand {[str(card) for card in self.hand]}")
+                    if len(self.hand) == 1:
+                        print(f"{self.name} has UNO")
+                    print(f"Updated hand {[str(card) for card in self.hand]}")
                     print()
+                    if len(self.hand) == 0:
+                        print(f"{self.name} has won! The game is over!")
+                        return
                     return player_choice
                 else:
                     print("That is not a valid card to play. Please match the color or number of the card.")
