@@ -87,8 +87,9 @@ class Game:
     def next_turn(self, deck):
         while not any(len(player.hand) == 0 for player in self.players):
             for player in self.players:
-                if player.hand == 0: 
-                    print(f"{self.player} has won")
+                if len(player.hand) == 0: 
+                    print(f"{player.name} has won")
+                    return
                 print(f"The current face up card is: {self.current_face_up_card}")
                 played_card = player.turn(deck, self.current_face_up_card)
 
@@ -140,12 +141,10 @@ class Player:
                 else:
                     print("That is not a valid card to play. Please match the color or number of the card.")
                     print(f"Your hand is: {[str(card) for card in self.hand]}") 
-                    print()
                     
             else:
-                   print(f"Card {player_choice} is not in the hand! Try again.")
-                   print(f"Your hand is: {[str(card) for card in self.hand]}") 
-                   print()
+                    print(f"Card {player_choice} is not in your hand! Try again.")
+                    print(f"Your hand is: {[str(card) for card in self.hand]}") 
                     
 
                 
