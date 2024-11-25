@@ -1,9 +1,10 @@
 import random
 
 class Card:
-    def __init__(self, colors, num):
+    def __init__(self, colors, num, action = None):
         self.color = colors
         self.num = num
+        self.action = action
 
     def __str__(self):
         return f"{self.color.capitalize()} {self.num}"
@@ -12,29 +13,45 @@ class Card:
         if isinstance(other, Card):
             return self.color == other.color and self.num == other.num
         return False
+
     
 def parse_card():
     valid = False
+    valid_colors = set(["Red", "Yellow", "Green", "Blue"])
+
     while valid != True:
         card = input(f'Select a card to play or type "draw" to draw a card. (ex. Red 8) ').strip().title()
         new_card = card.strip()
         if new_card == "Draw":
             valid = True
             return "Draw"
+        elif "Skip" in new_card:
+            split_card = new_card.split()
+            if len(split_card) != 2:
+                print("The card length you entered is either too short or too long. (ex. Red Skip)")
+                new_card = input(f'Select a card to play or type "draw" to draw a card. (ex. Red 8) ').strip().title()
+                continue
+            color = split_card[0]
+            if color in valid_colors:
+                valid = True
+                return Card(color, None, action = "Skip" )
+            else:
+                print("That is not a valid color. Please enter a valid color. (Red, Yellow, Green, or Blue).")
+
         else:
             split_card = new_card.split()
-            if len(split_card) > 2 or len(split_card) < 2: 
+            if len(split_card) != 2: 
                 print("That is not a valid entry please try again.")
-                card = input(f'Select a card to play or type "draw" to draw a card. (ex. Red 8) ').strip().title()
+                new_card = input(f'Select a card to play or type "draw" to draw a card. (ex. Red 8) ').strip().title()
+                continue
             color = split_card[0]
             num = split_card[1]
-            valid_colors = set(["Red", "Yellow", "Green", "Blue"])
             valid_number = set(["0", "1", "2", "3", "4", "5", "6", "7",  "8", "9"])
             if color in valid_colors and num in valid_number:
                 valid = True
                 return Card(color, num)
             elif color not in valid_colors:
-                print("That is not a valid color. Please enter a valid color and number (Red, Yellow, Green, Blue).")
+                print("That is not a valid color. Please enter a valid color and number (Red, Yellow, Green, or Blue).")
             elif num not in valid_number: 
                 print("That is not a valid number. Pleae enter a card with a valid color and number (1-9).")
             else:
@@ -48,11 +65,20 @@ class Deck:
         self.cards_played = []
         color = ["Red", "Yellow", "Green", "Blue"]
         number = ["0", "1", "1", "2", "2", "3", "3", "4", "4", "5", "5", "6", "6", "7", "7", "8", "8", "9", "9"]
-        #wild = ["wild card", "wild card", "wild card", "wild card", "draw four", "draw four", "draw four", "draw four"]
-        #action = ["skip", "skip", "draw two", "draw two", "reverse", "reverse"]
+        wild = ["Wild Card", "Wild Card", "Wild Card", "Wild Card", "Draw Four", "Draw Four", "Draw Four", "Draw Four"]
+        action = ["Skip", "Skip", "Draw Two", "Draw Two", "Reverse", "Reverse"]
+
         for colors in color:
             for num in number:
                 self.cards.append(Card(colors,num))
+
+        for colors in color:
+            for actions in action:
+                self.cards.append(Card(colors, None, actions))
+
+        for wilds in wild:
+            self.cards.append(Card(None, None, wilds))
+
           
     def shuffle(self):
         random.shuffle(self.cards)
@@ -76,8 +102,6 @@ class Deck:
         return starting_card
     
      
-   
-
 
 class Game:
     def __init__(self, current_face_up_card, players):
@@ -106,10 +130,7 @@ class Game:
                     deck.cards.extend(new_deck)
                     deck.shuffle()
                     deck.cards_played.clear()
-
-                    
-           
-                  
+                
 
 class Player:
 
@@ -159,8 +180,6 @@ class Player:
                     print(f"Card {player_choice} is not in your hand! Try again.")
                     print(f"Your hand is: {[str(card) for card in self.hand]}") 
                     
-
-                
 
 
 def main():
