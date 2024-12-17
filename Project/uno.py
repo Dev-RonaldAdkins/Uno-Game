@@ -7,107 +7,51 @@ class Card:
         self.action = action
 
     def __str__(self):
-        return f"{self.color.capitalize()} {self.num}"
-    
+        if self.action:
+            return f"{self.color.capitalize() if self.color else ''} {self.action}"
+        elif self.num:
+            return f"{self.color.capitalize()} {self.num}"
+        else:
+            return "Invalid Card"
+
     def __eq__(self, other):
         if isinstance(other, Card):
-            return self.color == other.color and self.num == other.num
+            return self.color == other.color and self.num == other.num and self.action == other.action
         return False
 
     
 def parse_card():
-    valid = False
+    
     valid_colors = set(["Red", "Yellow", "Green", "Blue"])
-
-    while valid != True:
+ 
+ 
+    while True:
         card = input(f'Select a card to play or type "draw" to draw a card. (ex. Red 8) ').strip().title()
-        new_card = card.strip()
-        if new_card == "Draw":
-            valid = True
+        card = card.strip()
+        if card == "Draw":
             return "Draw"
-        elif "Skip" in new_card:
-            split_card = new_card.split()
-            if len(split_card) != 2:
-                print("The card length you entered is either too short or too long. (ex. Red Skip)")
-                new_card = input(f'Select a card to play or type "draw" to draw a card. ').strip().title()
-                continue
-            color = split_card[0]
-            if color in valid_colors:
-                valid = True
-                return Card(color, None, action = "Skip" )
-            else:
-                print("That is not a valid color. Please enter a valid color. (Red, Yellow, Green, or Blue).")
-        elif "Reverse" in new_card:
-            split_card = new_card.split()
-            if len(split_card) != 2:
-                print("The card length you entered is either too short or too long. Try again. (ex. Blue Reverse) ")
-                new_card = input(f'Select a card to play or type "draw" to draw a card. ').strip().title()
-                continue
-            color = split_card[0]
-            if color in valid_colors:
-                valid = True
-                return Card(color, None, action = "Reverse")
-            else:
-                print("That is not a valid color. Please enter a valid color. (Red, Yellow, Green, or Blue).")
-        elif "Draw Two" in new_card:
-            split_card = new_card.split()
-            if len(split_card) != 3:
-                print("The card length you entered is either too short or too long. Try again. (ex. Red Draw Two)")
-                new_card = input(f'Select a card to play or type "draw" to draw a card. ').strip().title()
-                continue
-            color = split_card[0]
-            if color in valid_colors:
-                valid = True
+        
+        split_card = card.split()
+
+        if card == "Wild Card":
+                return Card(None, None, action = "Wild Card")
+        elif card == "Draw Four":
+            return Card(None, None, action = "Draw Four")     
+        elif len(split_card) == 2:
+            color, value = split_card
+
+            if color in valid_colors and (value.isdigit() or value in ["Skip", "Reverse", "Draw"]):
+                if value.isdigit():
+                    return Card(color, value)
+                return Card(color, None, action = value)   
+            
+        elif len(split_card) == 3:
+            color, draw, two = split_card    
+            if color in valid_colors and draw == "Draw" and two == "Two":
                 return Card(color, None, action = "Draw Two")
-            else:
-                print("That is not a valid color. Please enter a valid color. (Red, Yellow, Green, or Blue).")   
-
-        elif "Wild Card" in new_card:
-            split_card = new_card.split()
-            if len(split_card) !=2: 
-                print("The card length you entered is either too short or too long. Try again. (ex. Wild Card) ")
-                new_card = input(f'Select a card to play or type "draw" to draw a card. ').strip().title()
-                continue
-            if split_card[0] == "Wild":
-                select_color = input("Select a color you would like to swap to: ")
-                if select_color in valid_colors:
-                    valid = True
-                    return Card(select_color, None, action = "Wild Card" )
-                else:
-                    print("That is not a valid color. Please enter a valid color. Red, Yellow, Green, or Blue).")
-        elif "Draw Four" in new_card:
-            split_card = new_card.split()
-            if len(split_card) !=2: 
-                print("The card length you entered is either too short or too long. Try again. (ex. Draw Four) ")
-                new_card = input(f'Select a card to play or type "draw" to draw a card. ').strip().title()
-                continue
-            if split_card[0] == "Draw":
-                select_color = input("Select a color you would like to swap to: ")
-                if select_color in valid_colors:
-                    valid = True
-                    return Card(select_color, None, action = "Draw Card" )
-                else:
-                    print("That is not a valid color. Please enter a valid color. Red, Yellow, Green, or Blue).")
-
+        
         else:
-            split_card = new_card.split()
-            if len(split_card) != 2: 
-                print("That is not a valid entry please try again.")
-                new_card = input(f'Select a card to play or type "draw" to draw a card. (ex. Red 8) ').strip().title()
-                continue
-            color = split_card[0]
-            num = split_card[1]
-            valid_number = set(["0", "1", "2", "3", "4", "5", "6", "7",  "8", "9"])
-            if color in valid_colors and num in valid_number:
-                valid = True
-                return Card(color, num)
-            elif color not in valid_colors:
-                print("That is not a valid color. Please enter a valid color and number (Red, Yellow, Green, or Blue).")
-            elif num not in valid_number: 
-                print("That is not a valid number. Pleae enter a card with a valid color and number (1-9).")
-            else:
-                print("That is not a valid card please try again.")
-
+            print("Invalid input. Please enter a card in the format 'Color Number' or 'Color Action'.")
 
 
 class Deck:
@@ -152,6 +96,7 @@ class Deck:
         #print("The faceup card on the table is:", starting_card)
         return starting_card
     
+    
      
 
 class Game:
@@ -163,29 +108,57 @@ class Game:
         print(f"The current face up card is: {self.current_face_up_card}")
     
     def next_turn(self, deck):
+        player_index = 0
+        num_player = len(self.players)
+
         while not any(len(player.hand) == 0 for player in self.players):
-            for player in self.players:
-                print(f"The current face up card is: {self.current_face_up_card}")
-                played_card = player.turn(deck, self.current_face_up_card)
+            current_player = self.players[player_index]
+            print(f"The current face up card is: {self.current_face_up_card}")
+            played_card = current_player.turn(deck, self.current_face_up_card)
 
-                if played_card is not None:
-                    self.current_face_up_card = played_card
-                    deck.cards_played.append(played_card)
+            if played_card is not None:
+                self.current_face_up_card = played_card
+                deck.cards_played.append(played_card)
 
-                if len(deck.cards) == 1:
-                    new_deck = []
-                    for cards in deck.cards_played:
-                        if cards == self.current_face_up_card:
-                            continue
-                        new_deck.append(cards)
-                    deck.cards.extend(new_deck)
-                    deck.shuffle()
-                    deck.cards_played.clear()
+                if played_card.action == "Skip":
+                    print(f"{self.players[(player_index + 1) % num_player].name} has been skipped")
+                    player_index = (player_index + 2) % num_player
+
+                elif played_card.action == "Draw Four":
+                    next_player = self.players[(player_index + 1) % num_player]
+                    print(f"{self.players[(player_index + 1) % num_player].name} has to draw four cards and cannot play")
+                    for _ in range(4):
+                            next_player.draw(deck)
+                    player_index = (player_index + 2) % num_player      
+                elif played_card.action == "Reverse":
+                    self.players.reverse()
+                    player_index = num_player - player_index - 1
+                
+                elif played_card.action == "Draw Two":
+                    next_player = self.players[(player_index + 1) % num_player]
+                    print(f"{self.players[(player_index + 1) % num_player].name} has to draw two cards and cannot play")
+                    for _ in range(2):
+                            next_player.draw(deck)
+                    player_index = (player_index + 2) % num_player
+                else:
+                    player_index = (player_index + 1) % num_player
+            else:
+                player_index = (player_index + 1) % num_player
+
+            if len(deck.cards) == 1:
+                new_deck = []
+                for cards in deck.cards_played:
+                    if cards == self.current_face_up_card:
+                        continue
+                    new_deck.append(cards)
+                deck.cards.extend(new_deck)
+                deck.shuffle()
+                deck.cards_played.clear()
                 
 
 class Player:
 
-    def __init__(self, name, players):
+    def __init__(self, name, players=None):
         self.hand = []
         self.name = name
         self.players = players
@@ -212,69 +185,40 @@ class Player:
                 print(f"Updated hand {[str(card) for card in self.hand]}")
                 print()
                 return None
-                
-            elif player_choice in self.hand:
-                if player_choice.color == current_face_up_card.color or player_choice.num == current_face_up_card.num:
-                    print(f"{self.name} is playing {player_choice}") 
-                    self.hand.remove(player_choice)
 
-                    #checking to see if player has UNO
+
+            elif any(player_choice == card for card in self.hand):
+                matching_card = next((card for card in self.hand if player_choice == card), None)
+
+                if matching_card.action in ["Wild Card", "Draw Four"]:
+                    while True:
+                        chosen_color = input("Select a color you would like to swap to (Red, Yellow, Green, or Blue). ").title
+                        if chosen_color in ["Red", "Yellow", "Green", "Blue"]:
+                            matching_card.color = chosen_color
+                            print(f"{self.name} is playing {matching_card.action} and the color is ({chosen_color}).")
+                            break
+                        else:
+                            print("Invalid color. Please choose Red, Yellow, Green, or Blue.")   
+                        self.hand.remove(matching_card) 
+                        return matching_card 
+
+                if (matching_card.color == current_face_up_card.color or matching_card.num == current_face_up_card.num or matching_card.action in ["Wild Card", "Draw Four"]):
+                    print(f"{self.name} is playing {matching_card}.")
+                    self.hand.remove(matching_card)
+
                     if len(self.hand) == 1:
-                        print(f"{self.name} has UNO")
-                    print(f"Updated hand {[str(card) for card in self.hand]}")
-                    print()
+                        print(f"{self.name} has UNO!")
 
-                    #If not cards left player wins
-                    if len(self.hand) == 0:
+                    elif len(self.hand) == 0:
                         print(f"{self.name} has won! The game is over!")
                         return
-
-                    #Reverse order of players
-                    if "Reverse" in player_choice:
-                       self.players.reverse()
-
-                    #Makes the next player draw 2 cards and skips their turn
-                    elif "Draw Two" in player_choice:
-                        current_player_index = self.players.index(self)
-                        next_player_index = (current_player_index+ 1) % len(self.players)
-                        next_player = self.players[next_player_index]
-                        print(f"{next_player.name} must draw 2 cards. And they cannot play a card")
-                        next_player.draw(deck)
-                        next_player.draw(deck)
-                        print()
-
-                    #Makes next player draw 4 and skips their turn
-                    elif "Draw Four" in player_choice:
-                        current_player_index = self.players.index(self)
-                        next_player_index = (current_player_index+ 1) % len(self.players)
-                        next_player = self.players[next_player_index]
-                        print(f"{next_player.name} must draw 4 cards. And they cannot play a card")
-
-                        #Loops to make player draw 4 cards
-                        for _ in range(4):
-                            next_player.draw(deck)
-                        print()
-
-                    #Skips the next players turn
-                    elif "Skip" in player_choice:
-                        current_player_index = self.players.index(self)
-                        next_player_index = (current_player_index+ 1) % len(self.players)
-                        next_player = self.players[next_player_index]
-                        
-                        
-                        print(f"{next_player.name} has been skipped and will not play.")
-                        print()
-                        
-                    
-                    return player_choice
+                    return matching_card
                 else:
-                    print("That is not a valid card to play. Please match the color or number of the card to the card on the.")
-                    print(f"Your hand is: {[str(card) for card in self.hand]}") 
-                    
+                    print("That card doesn't match the current face-up card. Try again.")
             else:
-                    print(f"Card {player_choice} is not in your hand! Try again.")
-                    print(f"Your hand is: {[str(card) for card in self.hand]}") 
-                    
+                print(f"Card {player_choice} is not in your hand. Please try again.")
+
+                  
 
 
 def main():
@@ -295,11 +239,15 @@ def main():
         players.append(players_names)
         count += 1
 
+        for player in players:
+            player.players = players
+
     
     deck = Deck()
     deck.shuffle()
     
     deck.deal(players)
+    
 
     game = Game(deck.start(), players)
 
