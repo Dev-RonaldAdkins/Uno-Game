@@ -103,6 +103,15 @@ class Game:
     def __init__(self, current_face_up_card, players):
         self.current_face_up_card = current_face_up_card
         self.players = players
+    def __str__(self):
+        if self.action:
+            if self.color:
+                return f"{self.color.captialize()} {self.action}"
+            return f"{self.action}"
+        elif self.num:
+            return f"{self.color.caplitalize()} {self.num}"
+        else:
+            return "Invalid Card"
 
     def display(self):
         print(f"The current face up card is: {self.current_face_up_card}")
@@ -192,7 +201,7 @@ class Player:
 
                 if matching_card.action in ["Wild Card", "Draw Four"]:
                     while True:
-                        chosen_color = input("Select a color you would like to swap to (Red, Yellow, Green, or Blue). ").title
+                        chosen_color = input("Select a color you would like to swap to (Red, Yellow, Green, or Blue). ").title()
                         if chosen_color in ["Red", "Yellow", "Green", "Blue"]:
                             matching_card.color = chosen_color
                             print(f"{self.name} is playing {matching_card.action} and the color is ({chosen_color}).")
