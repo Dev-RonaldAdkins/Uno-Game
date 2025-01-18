@@ -1,5 +1,6 @@
 import random
 
+
 class Card:
     def __init__(self, colors, num, action = None):
         self.color = colors
@@ -50,8 +51,7 @@ def parse_card():
             if color in valid_colors and draw == "Draw" and two == "Two":
                 return Card(color, None, action = "Draw Two")
         
-        else:
-            print("Invalid input. Please enter a card in the format 'Color Number' or 'Color Action'.")
+        print("Invalid input. Please enter a card in the format 'Color Number' or 'Color Action'.")
 
 
 class Deck:
@@ -93,15 +93,15 @@ class Deck:
     def start(self):
         starting_card = self.cards.pop(0)
         self.cards_played.append(starting_card)
-        #print("The faceup card on the table is:", starting_card)
+        #print("The faceup card on the table is:", starting_card
         return starting_card
     
     
      
 
 class Game:
-    def __init__(self, current_face_up_card, players):
-        self.current_face_up_card = current_face_up_card
+    def __init__(self, players, starting_card):
+        self.current_face_up_card = starting_card
         self.players = players
     def __str__(self):
         if self.action:
@@ -116,13 +116,62 @@ class Game:
     def display(self):
         print(f"The current face up card is: {self.current_face_up_card}")
     
-    def next_turn(self, deck):
+    def process_starting_card(self, deck):
         player_index = 0
+        num_player = len(self.players)
+        starting_card = self.current_face_up_card
+
+        if starting_card.action == "Skip":
+            print(f"{self.players[(player_index + 1) % num_player].name} has been skipped")
+            player_index = (player_index + 2) % num_player
+            return player_index
+
+        elif starting_card.action == "Draw Four":
+            next_player = self.players[(player_index + 1) % num_player]
+            print(f"{self.players[(player_index + 1) % num_player].name} has to draw four cards and cannot play")
+            for _ in range(4):
+                    next_player.draw(deck)
+            player_index = (player_index + 2) % num_player
+            color_select = input("Choose a color you would like the card to be. (Red, Green, Blue, or Yellow)")     
+            return player_index, color_select
+
+        elif starting_card.action == "Wild Card":
+            print(f"The starting card is {starting_card}. The first player will choose the starting color.")
+
+            while True:
+                color_select = input("Choose a color you would like the card to be. (Red, Green, Blue, or Yellow) ").capitalize() 
+                if color_select in ["Red", "Green", "Blue", "Yellow"]:
+                    starting_card.color = color_select
+                    break
+                print("Invalid color. Please choose Red, Green, Blue, or Yellow.")
+
+            next_player = self.players[(player_index + 1) % num_player]
+    
+            return next_player, color_select
+
+        elif starting_card.action == "Reverse":
+            self.players.reverse()
+            player_index = num_player - player_index - 1
+            return player_index
+        
+        elif starting_card.action == "Draw Two":
+            next_player = self.players[(player_index + 1) % num_player]
+            print(f"{self.players[(player_index + 1) % num_player].name} has to draw two cards and cannot play")
+            for _ in range(2):
+                    next_player.draw(deck)
+            player_index = (player_index + 2) % num_player
+            return player_index
+
+        else:
+            player_index = (player_index + 1) % num_player
+        
+        return player_index
+    
+    def next_turn(self, deck, player_index=0):
         num_player = len(self.players)
 
         while not any(len(player.hand) == 0 for player in self.players):
             current_player = self.players[player_index]
-            print(f"The current face up card is: {self.current_face_up_card}")
             played_card = current_player.turn(deck, self.current_face_up_card)
 
             if played_card is not None:
@@ -180,7 +229,7 @@ class Player:
         return player_choice
     
     def turn(self, deck, current_face_up_card):
-        
+        print()
         print(f"It is your turn {self.name}")
 
         print(f"Your hand is: {[str(card) for card in self.hand]}")    
@@ -190,8 +239,24 @@ class Player:
     
             if player_choice == "Draw":
                 self.draw(deck)
+                drawn_card = self.hand[-1]
                 print(f"{self.name} has drawn a card")
                 print(f"Updated hand {[str(card) for card in self.hand]}")
+                #allows player to play card if it is playable.
+                if drawn_card.color == current_face_up_card.color or drawn_card.num == current_face_up_card.num or drawn_card.action == current_face_up_card.action or drawn_card.action in ["Wild", "Draw Four"]:
+                    print(f"{self.name}, you can play the card you just drew: {drawn_card}")
+                    play_now = input("Would you like to play this card? (yes/no): ").strip().lower()
+
+                    if play_now == "yes":
+                        self.hand.remove(drawn_card)
+                        print(f"{self.name} is playing {drawn_card}.")
+
+                        if len(self.hand) == 1:
+                            print(f"{self.name} has UNO!")
+
+                        return drawn_card
+                print(f"{self.name} cannot play the drawn card or chose not to play it.")
+                print(f"The current face up card is: {current_face_up_card}")
                 print()
                 return None
 
@@ -199,16 +264,33 @@ class Player:
             elif any(player_choice == card for card in self.hand):
                 matching_card = next((card for card in self.hand if player_choice == card), None)
 
-                if matching_card.action in ["Wild Card", "Draw Four"]:
+                if matching_card.action == "Draw Four":
+                    matching_color_cards = [card for card in self.hand if card.color == current_face_up_card.color]
+                    if matching_color_cards:
+                        print("You cannot play a Draw Four while you have a card of the same color as the current faceup card")
+                        continue
                     while True:
                         chosen_color = input("Select a color you would like to swap to (Red, Yellow, Green, or Blue). ").title()
                         if chosen_color in ["Red", "Yellow", "Green", "Blue"]:
                             matching_card.color = chosen_color
-                            print(f"{self.name} is playing {matching_card.action} and the color is ({chosen_color}).")
+                            print(f"{self.name} is playing {matching_card.action} and the color is ({chosen_color}).")       
                             break
                         else:
                             print("Invalid color. Please choose Red, Yellow, Green, or Blue.")   
-                        self.hand.remove(matching_card) 
+                        self.hand.remove(matching_card)  
+                        return matching_card 
+
+
+                if matching_card.action == "Wild Card":
+                    while True:
+                        chosen_color = input("Select a color you would like to swap to (Red, Yellow, Green, or Blue). ").title()
+                        if chosen_color in ["Red", "Yellow", "Green", "Blue"]:
+                            matching_card.color = chosen_color
+                            print(f"{self.name} is playing {matching_card.action} and the color is ({chosen_color}).")       
+                            break
+                        else:
+                            print("Invalid color. Please choose Red, Yellow, Green, or Blue.")   
+                        self.hand.remove(matching_card)  
                         return matching_card 
 
                 if (matching_card.color == current_face_up_card.color or matching_card.num == current_face_up_card.num or matching_card.action in ["Wild Card", "Draw Four"]):
@@ -221,9 +303,16 @@ class Player:
                     elif len(self.hand) == 0:
                         print(f"{self.name} has won! The game is over!")
                         return
+
+                    current_face_up_card.color = matching_card.color
+                    current_face_up_card.num - matching_card.num
+                    current_face_up_card.action = matching_card.action
+                    print(f"The current face=up card is now {current_face_up_card}")       
+
+                      
+
                     return matching_card
-                else:
-                    print("That card doesn't match the current face-up card. Try again.")
+                print("That card doesn't match the current face-up card. Try again.")
             else:
                 print(f"Card {player_choice} is not in your hand. Please try again.")
 
@@ -231,8 +320,9 @@ class Player:
 
 
 def main():
+  
     num_players = 0
-    count = 0
+    count = 0 
     players = []
     
 
@@ -244,22 +334,33 @@ def main():
 
     while count < num_players:
         name = input("Enter player name: ")
-        players_names = Player(name)
-        players.append(players_names)
+        players.append(Player(name))
         count += 1
 
-        for player in players:
-            player.players = players
 
-    
     deck = Deck()
     deck.shuffle()
     
     deck.deal(players)
+
+    starting_card = deck.start()
+
+    game = Game(players, starting_card)
+    game.display()
+
+    player_index = 0
+
+    updated_state = game.process_starting_card(deck)
+
+    # Use updated_player_index_or_state if it changes the game's starting state
+    if isinstance(updated_state, tuple): # for cases with color selection
+        player_index, color = updated_state
+        print(f"starting color is {color}")
+    elif isinstance(updated_state, int):
+        player_index = updated_state
     
 
-    game = Game(deck.start(), players)
-
-    game.next_turn(deck)
+    game.next_turn(deck, player_index)
         
-main()
+if __name__ == "__main__":
+    main()
